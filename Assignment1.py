@@ -132,8 +132,9 @@ def plot_matches(image1,image2,match1,match2):
     image3 = concatenate((image1, image2), axis=1)
     plt.imshow(image3)
     cols = 800
-    p = 0
     #cols = im1.shape[1]#800
+    p = 0
+    assert len(match1) == len(match2)
     for i in range (len(match1)):
         plt.plot([match1[p][1], match2[p][1]+cols], [match1[p][0], match2[p][0]], 'co-')
         p+=1
@@ -144,14 +145,15 @@ def plot_matches(image1,image2,match1,match2):
 
 plot_matches(image1,image2,Points1,Points2)
 
+print Points2
     
 plt.subplot(1,2,1)
-plt.imshow(image1)
+plt.imshow(image1, origin='lower')
 plt.plot([p[1] for p in Points1], [p[0] for p in Points1], 'r.')
 plt.axis('off')
 plt.subplot(1,2,2)
-plt.imshow(image2)
-plt.plot([p[1] for p in Points2], [p[0] for p in Points2], 'y.')
+plt.imshow(image2, origin='lower')
+plt.plot([p[1] for p in Points2], [p[0] for p in Points2], 'c.')
 plt.axis('off')
 plt.show()
 
