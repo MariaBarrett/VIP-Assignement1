@@ -32,13 +32,15 @@ def detectinterest(image_GF):
 
 
 def patch(image):
+# needs to be fixed to omit patches too close to edges
+#why is it assymmtrical?
     patch=[]
     Patch=[]
     interest=detectinterest(image)
     for point in interest:
        for i in range(point[0]-1,point[0]+2):
            for j in range(point[1]-1,point[1]+2):
-               patch.append(image[i,j])
+               patch.append(image[i,j]) # Maybe I'm tired but is this the gray scale value you append?
        
        patch.append(point[0])
        patch.append(point[1])
@@ -46,11 +48,12 @@ def patch(image):
        patch=[]
     
     return Patch
+#A patch looks e.g. like [0, 255, 2, 0, 179, 389]. Shouldn't it contain six times [x,y]?
     
 def compute(Patch,image):#here patch looks like [value, value, value... x, y]
     sum=0
     sum2=0
-    for i in range(len(Patch)-2):
+    for i in range(len(Patch)-2): # why -2?
             sum+=Patch[i]
     meanvalue=sum/(len(Patch)-2)
     
@@ -125,10 +128,12 @@ patchlist2=patch(image_GF2)
 
 Points1,Points2=match(patchlist1,patchlist2,threshold=0.5)
 
-print Points1
-print Points2
+ncc= ncc(patchlist1, patchlist2)
+print ncc
 
 def plot_matches(image1,image2,match1,match2): 
+# This function plots the matched points from two different lists and draws a
+#line from match1[0] to match2[0], match1[1] to match2[1] etc.  
     image3 = concatenate((image1, image2), axis=1)
     plt.imshow(image3)
     cols = 800
