@@ -7,11 +7,11 @@ import math
 
 plt.gray()
 # Import images and tranfer them into 2D arrays
+#image1 = array(Image.open("imagedata/Img001_diffuse_smallgray.png"))
+#image2 = array(Image.open("imagedata/Img002_diffuse_smallgray.png"))
+
 image1 = (Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img001_diffuse_smallgray.png"))
 image2 = (Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img002_diffuse_smallgray.png"))
-#image1 = array(Image.open("imagedata/Img001_diffuse_smallgray.png"))
-# image2 = array(Image.open("imagedata/Img002_diffuse_smallgray.png"))
-
 
 # Filter image with Gussian Filter
 image_GF= filters.gaussian_laplace(image1, sigma=5)#Laplacian Gussian filter
@@ -35,7 +35,6 @@ def detectinterest(image_GF):
 
 
 def patch(image):
-# does it need to be fixed to omit patches too close to edges
     patch=[]
     Patch=[]
     interest=detectinterest(image)
@@ -54,7 +53,7 @@ def patch(image):
 def compute(Patch,image):#here patch looks like [value, value, value... x, y]
     sum=0
     sum2=0
-    for i in range(len(Patch)-2): 
+    for i in range(len(Patch)-2):
             sum+=Patch[i]
     meanvalue=sum/(len(Patch)-2)
     
@@ -71,7 +70,7 @@ def NCC(patch1,patch2):
     for i in range(len(patch1)-2):
          sum+=((patch1[i]-mean1)*(patch2[i]-mean2))/(sta1*sta2)
          
-    NCC=1-(sum/(len(patch1)-2))     # check Discussion board
+    NCC=1-(sum/(len(patch1)-2))    
     return NCC
     
 def evaluate(Match1,Match2):#here match1 is patch and match2 is something like [patch2, patch2, patch2]
@@ -79,8 +78,8 @@ def evaluate(Match1,Match2):#here match1 is patch and match2 is something like [
     Distance=[]
     for match2 in Match2:
         for i in range(len(Match1)-2):
-           sum+=(Match1[i]-match2[i])**2 # here you square them
-        distance=sqrt(sum) #and here you take the squareroot
+           sum+=(Match1[i]-match2[i])**2
+        distance=sqrt(sum)
         Distance.append(distance)
         sum=0
     
@@ -129,9 +128,6 @@ patchlist2=patch(image_GF2)
 
 Points1,Points2=match(patchlist1,patchlist2,threshold=0.5)
 
-ncc= NCC(patchlist1, patchlist2)
-print ncc
-
 def plot_matches(image1,image2,match1,match2): 
 # This function plots the matched points from two different lists and draws a
 #line from match1[0] to match2[0], match1[1] to match2[1] etc.  
@@ -147,11 +143,8 @@ def plot_matches(image1,image2,match1,match2):
     plt.axis('off')
     plt.autoscale(False)
     plt.show()
-# Draw matched points not all interest points could be matched well
 
-plot_matches(image1,image2,Points1,Points2)
-
-print Points2
+plot_matches(image1,image2,Points1,Points2)    
     
 plt.subplot(1,2,1)
 plt.imshow(image1, origin='lower')
@@ -159,7 +152,7 @@ plt.plot([p[1] for p in Points1], [p[0] for p in Points1], 'r.')
 plt.axis('off')
 plt.subplot(1,2,2)
 plt.imshow(image2, origin='lower')
-plt.plot([p[1] for p in Points2], [p[0] for p in Points2], 'c.')
+plt.plot([p[1] for p in Points2], [p[0] for p in Points2], 'r.')
 plt.axis('off')
 plt.show()
 
