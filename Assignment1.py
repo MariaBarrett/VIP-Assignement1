@@ -9,6 +9,9 @@ plt.gray()
 # Import images and tranfer them into 2D arrays
 image1 = (Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img001_diffuse_smallgray.png"))
 image2 = (Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img002_diffuse_smallgray.png"))
+#image1 = array(Image.open("imagedata/Img001_diffuse_smallgray.png"))
+# image2 = array(Image.open("imagedata/Img002_diffuse_smallgray.png"))
+
 
 # Filter image with Gussian Filter
 image_GF= filters.gaussian_laplace(image1, sigma=5)#Laplacian Gussian filter
@@ -40,7 +43,7 @@ def patch(image):
     for point in interest:
        for i in range(point[0]-1,point[0]+2):
            for j in range(point[1]-1,point[1]+2):
-               patch.append(image[i,j]) # Maybe I'm tired but is this the gray scale value you append?
+               patch.append(image[i,j])
        
        patch.append(point[0])
        patch.append(point[1])
@@ -48,7 +51,7 @@ def patch(image):
        patch=[]
     
     return Patch
-#A patch looks e.g. like [0, 255, 2, 0, 179, 389]. Shouldn't it contain six times [x,y]?
+#A patch looks e.g. like [0, 255, 2, 0, 179, 389].... How does that make sense?
     
 def compute(Patch,image):#here patch looks like [value, value, value... x, y]
     sum=0
@@ -128,7 +131,7 @@ patchlist2=patch(image_GF2)
 
 Points1,Points2=match(patchlist1,patchlist2,threshold=0.5)
 
-ncc= ncc(patchlist1, patchlist2)
+ncc= NCC(patchlist1, patchlist2)
 print ncc
 
 def plot_matches(image1,image2,match1,match2): 
