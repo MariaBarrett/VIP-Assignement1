@@ -35,8 +35,7 @@ def detectinterest(image_GF):
 
 
 def patch(image):
-# needs to be fixed to omit patches too close to edges
-#why is it assymmtrical?
+# does it need to be fixed to omit patches too close to edges
     patch=[]
     Patch=[]
     interest=detectinterest(image)
@@ -51,12 +50,11 @@ def patch(image):
        patch=[]
     
     return Patch
-#A patch looks e.g. like [0, 255, 2, 0, 179, 389].... How does that make sense?
     
 def compute(Patch,image):#here patch looks like [value, value, value... x, y]
     sum=0
     sum2=0
-    for i in range(len(Patch)-2): # why -2?
+    for i in range(len(Patch)-2): 
             sum+=Patch[i]
     meanvalue=sum/(len(Patch)-2)
     
