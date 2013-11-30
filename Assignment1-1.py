@@ -40,7 +40,7 @@ def patch(image,width):
     wid = int(width / 2)
     patch=[]
     Patch=[]
-    interest=detect(image)
+    extremas=detect(image)
     for point in extremas:
        for i in range(point[0]-wid,point[0]+wid+1):
            for j in range(point[1]-wid,point[1]+wid+1):
