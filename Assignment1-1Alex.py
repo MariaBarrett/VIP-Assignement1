@@ -8,10 +8,10 @@ from scipy.spatial.distance import euclidean
 
 
 plt.gray()
-
 # Import images and tranfer them into 2D arrays
 #image1 = array(Image.open("imagedata/Img001_diffuse_smallgray.png"))
 #image2 = array(Image.open("imagedata/Img002_diffuse_smallgray.png"))
+#image3 = array(Image.open("imagedata/Img009_diffuse_smallgray.png"))
 
 image1 = (Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img001_diffuse_smallgray.png"))
 image2 = (Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img002_diffuse_smallgray.png"))
@@ -19,17 +19,27 @@ image9 = (Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img009_di
 
 
 # Filter image with Gussian Filter
-image_GF= filters.gaussian_laplace(image1, sigma=5)#Laplacian Gussian filter
-image_GF2= filters.gaussian_laplace(image2, sigma=5)
+image_GF= filters.gaussian_laplace(image1, sigma=3)#Laplacian Gussian filter
+image_GF2= filters.gaussian_laplace(image2, sigma=3)
+image_GF9= filters.gaussian_laplace(image9, sigma=3)
+
 
 def detect(image):
   
   extremas=[]
   for x in range(1,image.shape[0]-1):
       for y in range(1,image.shape[1]-1):
-          if image[x,y]< image[x,y+1] and image[x,y]< image[x,y-1] and image[x,y]< image[x-1,y] and image[x,y]< image[x+1,y] and image[x,y]<5:
-              extremas.append([x,y])                
-          if image[x,y]> image[x,y+1] and image[x,y]> image[x,y-1] and image[x,y]> image[x-1,y] and  image[x,y]> image[x+1,y] and image[x,y]>250:
+          if (image[x,y]< image[x,y+1]
+          and image[x,y]< image[x,y-1]
+          and image[x,y]< image[x-1,y]
+          and image[x,y]< image[x+1,y]
+          and image[x,y]<5
+          or               
+          image[x,y]> image[x,y+1]
+          and image[x,y]> image[x,y-1]
+          and image[x,y]> image[x-1,y]
+          and  image[x,y]> image[x+1,y]
+          and image[x,y]>250):
               extremas.append([x,y])
   print len(extremas)
   return extremas
@@ -80,10 +90,10 @@ def NCC(patch1,patch2):
          sum+=((patch1[i]-mean1)*(patch2[i]-mean2))/(sta1*sta2)        
     NCC=(sum/(len(patch1)-2))  
     return NCC
-
+ 
 def evaluate(Match1,Match2):
 #Euclidean distance. Match 1 is one patch. Match 2 is a list of possible matches. 
-#if the distance from the best candidate from Match2 is more than 0.8 of 
+#if the distance from the best candidate from Match2 is more than 0.8 of than the second best
 #evaluate using bubble sort
     sum=0
     Distance=[]
@@ -106,8 +116,7 @@ def evaluate(Match1,Match2):
 """
 def evaluate(Match1,Match2):
 #Evaluate matches using euclidean distance. Match 1 is one patch. Match 2 is a list of possible matches. 
-#if the distance from the second best candidate from Match2 is more than 0.8 of the best, the best
-#is returned  
+#if the distance from the best candidate from Match2 is more than 0.8 of 
     sum=0
     Distance=[]
     for match2 in Match2:
@@ -115,16 +124,16 @@ def evaluate(Match1,Match2):
         Distance.append(distance)
         sum = 0        
     Distance = sorted(Distance)
-    if Distance[0]/Distance[1]<=0.5:
+    if Distance[0]/Distance[1]<=0.8:
         return Match2[0]
     else: return []
-"""
- 
-def match(patchlist1,patchlist2,threshold):
+
+ """
+def match(patchlist1,patchlist2,threshold):# Question: Is it possible two points in image1 match the same point in image2
     #This function matches one patch from one image to all patches in the other image
     # calling the NCC function. If the ncc value is above the threshold
     #patches from each list is stored in Matched1 and Matched2 with the same index number
-    #If the best match from Match2 is more than 0.8 closer than the second best, then  function returns the two matches in 
+    #If the best match from Match2 is more than T closer than the second best, this function returns the two matches in 
     #the lists best_matched1 and best_matched2
     Matched=[] #temporary list
     Matched1=[] # a 1D list of patches from patchlist1 that has matches above the threshold from list 2
@@ -177,15 +186,12 @@ def plot_matches(image1,image2,match1,match2):
 plot_matches(image1,image2,Points1,Points2)    
     
 plt.subplot(1,2,1)
-plt.plot([p[1] for p in Points1], [p[0] for p in Points1], 'r.')
 plt.imshow(image1)
-plt.gca().invert_yaxis()
+plt.plot([p[1] for p in Points1], [p[0] for p in Points1], 'r.')
 plt.axis('off')
-
 plt.subplot(1,2,2)
-plt.plot([p[1] for p in Points2], [p[0] for p in Points2], 'r.')
 plt.imshow(image2)
-plt.gca().invert_yaxis()
+plt.plot([p[1] for p in Points2], [p[0] for p in Points2], 'r.')
 plt.axis('off')
 plt.show()
 
