@@ -5,7 +5,7 @@ from numpy import *
 import matplotlib.pyplot as plt
 import math
 from scipy.spatial.distance import euclidean
-
+from operator import itemgetter
 
 plt.gray()
 
@@ -13,14 +13,14 @@ plt.gray()
 #image1 = array(Image.open("imagedata/Img001_diffuse_smallgray.png"))
 #image2 = array(Image.open("imagedata/Img002_diffuse_smallgray.png"))
 
-image1 = (Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img001_diffuse_smallgray.png"))
-image2 = (Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img002_diffuse_smallgray.png"))
-image9 = (Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img009_diffuse_smallgray.png"))
+image1 = array(Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img001_diffuse_smallgray.png"),dtype='float32')
+image2 = array(Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img002_diffuse_smallgray.png"),dtype='float32')
+image9 = array(Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img009_diffuse_smallgray.png"),dtype='float32')
 
 
 # Filter image with Gussian Filter
-image_GF= filters.gaussian_laplace(image1, sigma=5)#Laplacian Gussian filter
-image_GF2= filters.gaussian_laplace(image2, sigma=5)
+image_GF= filters.gaussian_laplace(image1, sigma=40)#Laplacian Gussian filter
+image_GF2= filters.gaussian_laplace(image2, sigma=40)
 
 def detect(image):
   
@@ -78,9 +78,10 @@ def NCC(patch1,patch2):
     sum=0
     for i in range(len(patch1)-2):
          sum+=((patch1[i]-mean1)*(patch2[i]-mean2))/(sta1*sta2)        
-    NCC=(sum/(len(patch1)-2))  
-    return NCC
+    ncc=(sum/(len(patch1)-2))  
+    return ncc
 
+"""
 def evaluate(Match1,Match2):
 #Euclidean distance. Match 1 is one patch. Match 2 is a list of possible matches. 
 #if the distance from the best candidate from Match2 is more than 0.8 of 
@@ -104,22 +105,21 @@ def evaluate(Match1,Match2):
         return Match2[0]
     else: return []
 """
-def evaluate(Match1,Match2):
+def evaluate(match1,Match2):
 #Evaluate matches using euclidean distance. Match 1 is one patch. Match 2 is a list of possible matches. 
-#if the distance from the second best candidate from Match2 is more than 0.8 of the best, the best
+#if the distance from the second best candidate from Match2 is more than 0.x of the best, the best
 #is returned  
-    sum=0
-    Distance=[]
+    Distance = []
     for match2 in Match2:
-        distance = euclidean(Match1[:-2], match2[:-2])
-        Distance.append(distance)
-        sum = 0        
-    Distance = sorted(Distance)
-    if Distance[0]/Distance[1]<=0.5:
-        return Match2[0]
+        distance = euclidean(match2[:-2],match1[:-2]) #not including the last two coordinate values
+        Distance.append([distance, match2])
+    Distance = sorted(Distance, key=itemgetter(0)) 
+    if Distance[0][0]/Distance[1][0]<=0.2:
+        ifoundamatch = Distance[0][1] #equal to match2
+        return ifoundamatch    
+        print ifoundamatch
     else: return []
-"""
- 
+
 def match(patchlist1,patchlist2,threshold):
     #This function matches one patch from one image to all patches in the other image
     # calling the NCC function. If the ncc value is above the threshold
@@ -178,14 +178,14 @@ plot_matches(image1,image2,Points1,Points2)
     
 plt.subplot(1,2,1)
 plt.plot([p[1] for p in Points1], [p[0] for p in Points1], 'r.')
-plt.imshow(image1)
-plt.gca().invert_yaxis()
+plt.imshow(image_GF)
+#plt.gca().invert_yaxis()
 plt.axis('off')
 
 plt.subplot(1,2,2)
 plt.plot([p[1] for p in Points2], [p[0] for p in Points2], 'r.')
-plt.imshow(image2)
-plt.gca().invert_yaxis()
+plt.imshow(image_GF2)
+#plt.gca().invert_yaxis()
 plt.axis('off')
 plt.show()
 
