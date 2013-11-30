@@ -19,8 +19,8 @@ image9 = array(Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img0
 
 
 # Filter image with Gussian Filter
-image_GF= filters.gaussian_laplace(image1, sigma=40)#Laplacian Gussian filter
-image_GF2= filters.gaussian_laplace(image2, sigma=40)
+image_GF= filters.gaussian_laplace(image1, sigma=10)#Laplacian Gussian filter
+image_GF2= filters.gaussian_laplace(image2, sigma=10)
 
 def detect(image):
   
@@ -106,7 +106,7 @@ def evaluate(Match1,Match2):
     else: return []
 """
 def evaluate(match1,Match2):
-#Evaluate matches using euclidean distance. Match 1 is one patch. Match 2 is a list of possible matches. 
+#Evaluate matches using euclidean distance. match1 is one patch. Match2 is a list of possible matches. 
 #if the distance from the second best candidate from Match2 is more than 0.x of the best, the best
 #is returned  
     Distance = []
@@ -124,39 +124,69 @@ def match(patchlist1,patchlist2,threshold):
     #This function matches one patch from one image to all patches in the other image
     # calling the NCC function. If the ncc value is above the threshold
     #patches from each list is stored in Matched1 and Matched2 with the same index number
-    #If the best match from Match2 is more than 0.8 closer than the second best, then  function returns the two matches in 
+    #If the best match from Match2 is more than 0.x closer than the second best, then  function returns the two matches in 
     #the lists best_matched1 and best_matched2
     Matched=[] #temporary list
-    Matched1=[] # a 1D list of patches from patchlist1 that has matches above the threshold from list 2
-    Matched2=[] # a list of list of (more) patches from patchlist 2 that matches one patch list1
+    matched1=[] # a 1D list of patches from patchlist1 
+    Matched2=[] # a list of list of (more) patches from patchlist 2 that matches one patch from patchlist 1
     best_matched1=[] # a list of best matches from image1
     best_matched2=[] # a list of best matches from image2
+    
     for patch1 in patchlist1:
         for patch2 in patchlist2:                   
-            if NCC(patch1,patch2)>threshold:
+            if (NCC(patch1,patch2))**2>threshold:
                Matched.append(patch2)
         if Matched!=[]:
             Matched2.append(Matched)
-            Matched1.append(patch1)
-        Matched=[]        
+            matched1.append(patch1)
+        Matched=[]
+
     # evaluate if the best match is convincing
-    for i in range(len(Matched1)):
+    for i in range(len(matched1)):
         if len(Matched2[i])==1: # if there is only one candidate
-            best_matched1.append([Matched1[i][-2],Matched1[i][-1]]) #append coordinates           
+            best_matched1.append([matched1[i][-2],matched1[i][-1]]) #append coordinates           
             best_matched2.append([Matched2[i][0][-2],Matched2[i][0][-1]]) # append coordinates
             
         elif len(Matched2[i])>1: # if more than one candidate: see if the best in convincing
-            evaluation=evaluate(Matched1[i],Matched2[i])
+            evaluation=evaluate(matched1[i],Matched2[i])
             if evaluation!=[]: 
-                best_matched1.append([Matched1[i][-2],Matched1[i][-1]])
+                best_matched1.append([matched1[i][-2],matched1[i][-1]])
                 best_matched2.append([evaluation[-2],evaluation[-1]])
-                               
-    return best_matched1,best_matched2
+    return best_matched1, best_matched2
+
+#-----------------------------------------------------------------------------------------------
+#Calling
 
 patchlist1=patch(image_GF, 3)
 patchlist2=patch(image_GF2, 3)
 
-Points1,Points2=match(patchlist1,patchlist2,threshold=0.5)
+def symmetri(patchlist1, patchlist2):
+    best1,best2=match(patchlist1,patchlist2,threshold=0.9)
+    bestsym2, bestsym1 = match(patchlist2,patchlist1,threshold=0.9)
+
+    print len(best1)
+    print len(best2)
+
+    print len(bestsym1)
+    print len(bestsym2)
+
+    real_best_matched1 =[] #a list of symmetrical best matches. Only append to this list if the best match is found symetrically too
+    real_best_matched2 =[] #a list of symmetrical best matches. Only append to this list if the best match is found symetrically too
+   
+    #check wheter a match occurs in the symmetrical list too
+    for i in range(len(best1)):
+        for sym1 in bestsym1:
+            if best1[i] == sym1:
+                real_best_matched1.append(best1[i])
+                real_best_matched2.append(best2[i])
+
+    return real_best_matched1, real_best_matched2
+
+Points1,Points2 = symmetri(patchlist1, patchlist2)
+print Points1
+print Points2
+#-----------------------------------------------------------------------------------------------
+#Plotting
 
 def plot_matches(image1,image2,match1,match2): 
 # This function plots the matched points from two different lists and draws a
@@ -188,6 +218,5 @@ plt.imshow(image_GF2)
 #plt.gca().invert_yaxis()
 plt.axis('off')
 plt.show()
-
 
 
