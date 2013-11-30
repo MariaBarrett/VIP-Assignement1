@@ -20,27 +20,28 @@ image_GF= filters.gaussian_laplace(image1, sigma=5)#Laplacian Gussian filter
 image_GF2= filters.gaussian_laplace(image2, sigma=5)
 neighbor = 4#the number of neighbor is 4
 
-def detectinterest(image_GF):
-  localmin=[]
-  localmax=[]
-  interest=[]
-  for x in range(1,image_GF.shape[0]-1):
-    for y in range(1,image_GF.shape[1]-1):
-         if image_GF[x,y]< image_GF[x,y+1] and image_GF[x,y]< image_GF[x,y-1] and image_GF[x,y]< image_GF[x-1,y] and  image_GF[x,y]< image_GF[x+1,y] and image_GF[x,y]<5:
-                localmin.append([x,y])
-                interest.append([x,y])                
-         if image_GF[x,y]> image_GF[x,y+1] and image_GF[x,y]> image_GF[x,y-1] and image_GF[x,y]> image_GF[x-1,y] and  image_GF[x,y]> image_GF[x+1,y] and image_GF[x,y]>250:
-                localmax.append([x,y])
-                interest.append([x,y])
-  return interest
 
+def detect(image):
+  
+  extremas=[]
+  for x in range(1,image.shape[0]-1):
+      for y in range(1,image.shape[1]-1):
+          if image[x,y]< image[x,y+1] and image[x,y]< image[x,y-1] and image[x,y]< image[x-1,y] and image[x,y]< image[x+1,y] and image[x,y]<50:
+              extremas.append([x,y])                
+          if image[x,y]> image[x,y+1] and image[x,y]> image[x,y-1] and image[x,y]> image[x-1,y] and  image[x,y]> image[x+1,y] and image[x,y]>200:
+              extremas.append([x,y])
+  print len(extremas)
+  return extremas
 
 def patch(image,width):
+#This function takes an image and a patch width and returns 
+#the gray value of all patch points in a list. The last two 
+# values in the list is the interest point coordinates
     wid = int(width / 2)
     patch=[]
     Patch=[]
-    interest=detectinterest(image)
-    for point in interest:
+    interest=detect(image)
+    for point in extremas:
        for i in range(point[0]-wid,point[0]+wid+1):
            for j in range(point[1]-wid,point[1]+wid+1):
                patch.append(image[i,j])
@@ -68,8 +69,8 @@ def compute(Patch):#here patch looks like [value, value, value... x, y]
 def NCC(patch1,patch2):
 #A function that takes two patches and returns the
 #normalized cross correlation value for every match
-    mean1,sta1= mean(patch1[:9]), std(patch1[:9]) # the first 9 values are the gray values. The last two are coordinates of the center
-    mean2,sta2= mean(patch2[:9]), std(patch2[:9])
+    mean1,sta1= mean(patch1[:-2]), std(patch1[:-2]) # The last two are coordinates of the center
+    mean2,sta2= mean(patch2[:-2]), std(patch2[:-2])
 
     #mean1,sta1= compute(patch1)
     #mean2,sta2= compute(patch2)    
