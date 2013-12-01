@@ -9,29 +9,39 @@ from operator import itemgetter
 
 plt.gray()
 
-# Import images and tranfer them into 2D arrays
+# Import images and tranfer them into 2D arrays of floats
 #image1 = array(Image.open("imagedata/Img001_diffuse_smallgray.png"))
 #image2 = array(Image.open("imagedata/Img002_diffuse_smallgray.png"))
+myimage1 = array(Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/human.png"),dtype='float32')
+myimage2 = array(Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/building.png"),dtype='float32')
+
 
 image1 = array(Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img001_diffuse_smallgray.png"),dtype='float32')
 image2 = array(Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img002_diffuse_smallgray.png"),dtype='float32')
 image9 = array(Image.open("/Users/Maria/Documents/ITandcognition/bin/Images/Img009_diffuse_smallgray.png"),dtype='float32')
 
+#image1 = array(Image.open("Images/Img001_diffuse_smallgray.png"))
+#image2 = array(Image.open("Images/Img002_diffuse_smallgray.png"))
+#image9 = array(Image.open("Images/Img009_diffuse_smallgray.png"))
 
 # Filter image with Gussian Filter
-image_GF= filters.gaussian_laplace(image1, sigma=10)#Laplacian Gussian filter
-image_GF2= filters.gaussian_laplace(image2, sigma=10)
+image_GF= filters.gaussian_laplace(image1, sigma=6)#Laplacian Gussian filter
+image_GF2= filters.gaussian_laplace(image2, sigma=6)
+image_GF9= filters.gaussian_laplace(image9, sigma=6)
+
+myimage1_GF= filters.gaussian_laplace(myimage1, sigma=6)#Laplacian Gussian filter
+myimage2_GF= filters.gaussian_laplace(myimage2, sigma=6)
+
 
 def detect(image):
-  
   extremas=[]
   for x in range(1,image.shape[0]-1):
       for y in range(1,image.shape[1]-1):
-          if image[x,y]< image[x,y+1] and image[x,y]< image[x,y-1] and image[x,y]< image[x-1,y] and image[x,y]< image[x+1,y] and image[x,y]<5:
+          if image[x,y]< image[x,y+1] and image[x,y]< image[x,y-1] and image[x,y]< image[x-1,y] and image[x,y]< image[x+1,y] and image[x,y]<50:
               extremas.append([x,y])                
           if image[x,y]> image[x,y+1] and image[x,y]> image[x,y-1] and image[x,y]> image[x-1,y] and  image[x,y]> image[x+1,y] and image[x,y]>250:
               extremas.append([x,y])
-  print len(extremas)
+  print ("number of extremas %s" % len(extremas))
   return extremas
 
 def patch(image,width):
@@ -53,7 +63,7 @@ def patch(image,width):
        patch=[]
     
     return Patch
-"""    
+"""
 def compute(Patch):#here patch looks like [value, value, value... x, y]
     sum=0
     sum2=0
@@ -114,10 +124,9 @@ def evaluate(match1,Match2):
         distance = euclidean(match2[:-2],match1[:-2]) #not including the last two coordinate values
         Distance.append([distance, match2])
     Distance = sorted(Distance, key=itemgetter(0)) 
-    if Distance[0][0]/Distance[1][0]<=0.2:
+    if Distance[0][0]/Distance[1][0]<=0.05: #only append if distance of best is a lot better than second best
         ifoundamatch = Distance[0][1] #equal to match2
         return ifoundamatch    
-        print ifoundamatch
     else: return []
 
 def match(patchlist1,patchlist2,threshold):
@@ -152,24 +161,17 @@ def match(patchlist1,patchlist2,threshold):
             if evaluation!=[]: 
                 best_matched1.append([matched1[i][-2],matched1[i][-1]])
                 best_matched2.append([evaluation[-2],evaluation[-1]])
+    print ("best matches one sided: %s" % len(best_matched1))
     return best_matched1, best_matched2
 
-#-----------------------------------------------------------------------------------------------
-#Calling
-
-patchlist1=patch(image_GF, 3)
-patchlist2=patch(image_GF2, 3)
 
 def symmetri(patchlist1, patchlist2):
+#This function calls the big match function twice. It ensures 1) that the outputted coordinates are teh best match whether you start with image 1 or image2
+# and 2) that an interest point in one image cannot be matched to more points in the other image. 
+
     best1,best2=match(patchlist1,patchlist2,threshold=0.9)
     bestsym2, bestsym1 = match(patchlist2,patchlist1,threshold=0.9)
-
-    print len(best1)
-    print len(best2)
-
-    print len(bestsym1)
-    print len(bestsym2)
-
+    
     real_best_matched1 =[] #a list of symmetrical best matches. Only append to this list if the best match is found symetrically too
     real_best_matched2 =[] #a list of symmetrical best matches. Only append to this list if the best match is found symetrically too
    
@@ -182,9 +184,16 @@ def symmetri(patchlist1, patchlist2):
 
     return real_best_matched1, real_best_matched2
 
+#-----------------------------------------------------------------------------------------------
+#Calling
+
+patchlist1=patch(image_GF, 4)
+patchlist2=patch(image_GF9, 4)
+
+
 Points1,Points2 = symmetri(patchlist1, patchlist2)
-print Points1
-print Points2
+print ("symmetrical best matches %s" % len(Points1))
+
 #-----------------------------------------------------------------------------------------------
 #Plotting
 
@@ -208,15 +217,52 @@ plot_matches(image1,image2,Points1,Points2)
     
 plt.subplot(1,2,1)
 plt.plot([p[1] for p in Points1], [p[0] for p in Points1], 'r.')
-plt.imshow(image_GF)
+plt.imshow(image1)
 #plt.gca().invert_yaxis()
 plt.axis('off')
 
 plt.subplot(1,2,2)
 plt.plot([p[1] for p in Points2], [p[0] for p in Points2], 'r.')
-plt.imshow(image_GF2)
+plt.imshow(image2)
 #plt.gca().invert_yaxis()
 plt.axis('off')
 plt.show()
+"""
+#----------------------------------------------------------------
+#Plotting myimages with extremas
+
+extremas1 = detect(myimage1_GF)
+extremas2 = detect(myimage2_GF)
+
+plt.subplot(221)
+plt.imshow(myimage1)
+plt.axis('off')
+plt.autoscale(False)
+plt.title('Humans')
 
 
+
+plt.subplot(223)
+plt.imshow(myimage1_GF)
+plt.plot([p[1] for p in extremas1], [p[0] for p in extremas1], 'c.')
+plt.axis('off')
+plt.autoscale(False)
+plt.title('Humans LoG with extremas')
+
+
+plt.subplot(222)
+plt.imshow(myimage2)
+plt.axis('off')
+plt.autoscale(False)
+plt.title('Building')
+
+
+plt.subplot(224)
+plt.imshow(myimage2_GF)
+plt.plot([p[1] for p in extremas2], [p[0] for p in extremas2], 'c.')
+plt.axis('off')
+plt.autoscale(False)
+plt.title('Building LoG with extremas')
+plt.show()
+
+"""
