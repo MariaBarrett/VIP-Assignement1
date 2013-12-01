@@ -50,21 +50,23 @@ def detect(image, threshold):
 def patch(image,width):
 #This function takes an image and a patch width and returns 
 #the gray value of all patch points in a list. The last two 
-# values in the list is the interest point coordinates
+# values in the list are the interest point coordinates
     wid = int(width / 2)
     patch=[]
     Patch=[]
     extremas=detect(image, threshold=20)
     for point in extremas:
-       for i in range(point[0]-wid,point[0]+wid+1):
-           for j in range(point[1]-wid,point[1]+wid+1):
-               patch.append(image[i,j])
-       
-       patch.append(point[0])
-       patch.append(point[1])
-       Patch.append(patch)
-       patch=[]
-    
+        if point[0]-wid > 0 and point[0]+wid < len(image): #omit patch if if it cannot fit within image borders
+            if point[1]-wid > 0 and point[1]+wid < len(image[0]):
+               for i in range(point[0]-wid,point[0]+wid+1):
+                   for j in range(point[1]-wid,point[1]+wid+1):
+                       patch.append(image[i,j])
+               
+               patch.append(point[0])
+               patch.append(point[1])
+               Patch.append(patch)
+               patch=[]
+            
     return Patch
 
 def NCC(patch1,patch2):
@@ -91,7 +93,7 @@ def evaluate(match1,Match2):
         distance = euclidean(match2[:-2],match1[:-2]) #not including the last two coordinate values
         Distance.append([distance, match2])
     Distance = sorted(Distance, key=itemgetter(0)) 
-    if Distance[0][0]/Distance[1][0]<=0.05: #only append if distance of best is a lot better than second best
+    if Distance[0][0]/Distance[1][0]<=0.5: #only append if distance of best is a lot better than second best
         ifoundamatch = Distance[0][1] #equal to match2
         return ifoundamatch    
     else: return []
@@ -136,8 +138,8 @@ def symmetri(patchlist1, patchlist2):
 #This function calls the big match function twice. It ensures 1) that the outputted coordinates are teh best match whether you start with image 1 or image2
 # and 2) that an interest point in one image cannot be matched to more points in the other image. 
 
-    best1,best2=match(patchlist1,patchlist2,threshold=0.9)
-    bestsym2, bestsym1 = match(patchlist2,patchlist1,threshold=0.9)
+    best1,best2=match(patchlist1,patchlist2,threshold=0.5)
+    bestsym2, bestsym1 = match(patchlist2,patchlist1,threshold=0.5)
     
     real_best_matched1 =[] #a list of symmetrical best matches. Only append to this list if the best match is found symetrically too
     real_best_matched2 =[] #a list of symmetrical best matches. Only append to this list if the best match is found symetrically too
@@ -153,9 +155,16 @@ def symmetri(patchlist1, patchlist2):
 
 #-----------------------------------------------------------------------------------------------
 #Calling
+"""
+patchsize=[2,4,6,8]
+for p in patchsize:
+    patchlist1=patch(image_GF, 4)
+    patchlist2=patch(image_GF2, 4)
 
-patchlist1=patch(image_GF, 2)
-patchlist2=patch(image_GF9, 2)
+
+"""
+patchlist1=patch(image_GF, 8)
+patchlist2=patch(image_GF2, 8)
 
 
 Points1,Points2 = symmetri(patchlist1, patchlist2)
@@ -181,7 +190,7 @@ def plot_matches(image1,image2,match1,match2):
     plt.show()
 
 plot_matches(image1,image2,Points1,Points2)    
-    
+"""    
 plt.subplot(1,2,1)
 plt.plot([p[1] for p in Points1], [p[0] for p in Points1], 'r.')
 plt.imshow(image1)
@@ -194,7 +203,7 @@ plt.imshow(image2)
 #plt.gca().invert_yaxis()
 plt.axis('off')
 plt.show()
-"""
+
 #----------------------------------------------------------------
 #Plotting myimages with extremas
 
